@@ -33,6 +33,9 @@ public class NewServlet extends HttpServlet {
         request.setAttribute("_token", request.getSession().getId());
 
         // おまじないとしてのインスタンスを生成
+        // ただし、リクエストスコープに message が入っていなければエラーが表示されます。
+        // NewServlet で「おまじない」として request.setAttribute("message", new Message()); を記述したのは、画面表示時のエラー回避のため、
+        // とりあえず “文字数0のデータ” をフォームに渡すためです。
         request.setAttribute("message", new Message());
 
         RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/messages/new.jsp");

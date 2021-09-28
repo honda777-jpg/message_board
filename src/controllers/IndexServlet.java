@@ -36,11 +36,32 @@ public class IndexServlet extends HttpServlet {
 
         EntityManager em = DBUtil.createEntityManager();
 
-        List<Message> messages = em.createNamedQuery("getAllMessages", Message.class).getResultList();
+        // 開くページ数を取得（デフォルトは1ページ目）
+        int page = 1;
+        try {
+            page = Integer.parseInt(request.getParameter("page"));
+        } catch(NumberFormatException e) {}
 
+        // 最大件数と開始位置を指定してメッセージを取得
+        List<Message> messages = em.createNamedQuery("getAllMessages", Message.class)
+                                   // 何件目からデータを取得するか（配列と同じ0番目から数えていきます）
+                                   // データの最大取得件数（今回は15件で固定）
+                                   .setFirstResult(15 * (page - 1))
+                                   .setMaxResults(15)
+                                   // getAllMessages は複数のデータが結果として戻ってくる可能性があるため getResultList() で問い合わせ結果を取得
+                                   .getResultList();
+
+        // 全件数を取得
+        // etMessagesCount は全件数という1つの結果のみが戻ってくるので、 getSingleResult() という
+        //“1件だけ取得する” という命令を指定
+        long messages_count = (long)em.createNamedQuery("getMessagesCount", Long.class)
+                                      .getSingleResult();
         em.close();
 
         request.setAttribute("messages", messages);
+        request.setAttribute("messages_count", messages_count);     // 全件数
+        request.setAttribute("page", page);                         // ページ数
+
 
         // フラッシュメッセージがセッションスコープにセットされていたら
         // リクエストスコープに保存する（セッションスコープからは削除）
